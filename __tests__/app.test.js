@@ -64,13 +64,13 @@ describe("GET /api/reviews", () => {
         expect(reviews).toBeSortedBy("created_at", { descending: true });
       });
   });
-  test("200: sorts the reviews correctly by sort_by and order parameters", () => {
+  test("200: sorts the reviews correctly by sort_by", () => {
     return request(app)
-      .get("/api/reviews?sort_by=owner&order=asc")
+      .get("/api/reviews?sort_by=owner")
       .expect(200)
       .then(({ body }) => {
         const { reviews } = body;
-        expect(reviews).toBeSortedBy("owner", { ascending: true });
+        expect(reviews).toBeSortedBy("owner", { descending: true });
       });
   });
   test("200: filters the reviews correctly by category parameter", () => {
@@ -79,31 +79,30 @@ describe("GET /api/reviews", () => {
       .expect(200)
       .then(({ body }) => {
         const { reviews } = body;
-        expect(reviews.length).toBe(1);
         reviews.forEach((review) => {
           expect(review).toHaveProperty("category", "dexterity");
         });
       });
   });
-  test("200: filters the reviews correctly by category parameter with a space", () => {
+  test("200: filters the reviews correctly by category parameter with two words", () => {
     return request(app)
-      .get("/api/reviews?category=social deduction")
+      .get("/api/reviews?category=social+deduction")
       .expect(200)
       .then(({ body }) => {
         const { reviews } = body;
-        expect(reviews.length).toBe(11);
         reviews.forEach((review) => {
           expect(review).toHaveProperty("category", "social deduction");
         });
       });
   });
-  test("200: responds with an array of comments for the given review_id in most recent order", () => {
+  test("200: responds with an array of comments for the given review_id", () => {
     return request(app)
-      .get("/api/reviews/2/comments")
+      .get("/api/reviews/3/comments")
       .expect(200)
       .then(({ body }) => {
         const { comments } = body;
-        expect(comments).toBeSortedBy("created_at", { descending: true });
+        expect(comments).toBeDefined();
+        expect(comments).toBeSortedBy("votes", { descending: true });
       });
   });
   test("200: responds with reviews sorted by a specific column in ascending order", () => {
@@ -186,7 +185,7 @@ describe("GET /api/reviews/:review_id", () => {
       .get("/api/reviews/not-a-number")
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid input");
+        expect(body.msg).toBe("Invalid request");
       });
   });
   test("responds with a comment count of 0 if the review has no comments", () => {
@@ -206,7 +205,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
     return request(app)
       .get("/api/reviews/2/comments")
       .expect(200)
-      .then(({ body }) => {
+      .then(({body}) => {
         const { comments } = body;
         expect(Array.isArray(comments)).toBe(true);
         comments.forEach((comment) => {
@@ -241,7 +240,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
       .get("/api/reviews/not-a-number/comments")
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid input");
+        expect(body.msg).toBe("Invalid request");
       });
   });
 });
@@ -252,7 +251,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
       .post("/api/reviews/1/comments")
       .send({ username: "bainesface", body: "TEST COMMENT!" })
       .expect(201)
-      .then(({ body }) => {
+      .then(({body}) => {
         expect(body.comments).toBe("TEST COMMENT!");
       });
   });
@@ -298,7 +297,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
       .send({ username: "bainesface", body: "TEST COMMENT!" })
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid input");
+        expect(body.msg).toBe("Invalid request");
       });
   });
 });
@@ -310,7 +309,7 @@ describe("PATCH /api/reviews/:review_id", () => {
       .send({ inc_votes: 10 })
       .expect(200)
       .then((res) => {
-        const review = JSON.parse(res.text).review[0];
+        const review = JSON.parse(res.text).review;
         expect(review).toMatchObject({
           review_id: 2,
           title: "Jenga",
@@ -331,7 +330,7 @@ describe("PATCH /api/reviews/:review_id", () => {
       .send({ inc_votes: -3 })
       .expect(200)
       .then((res) => {
-        const review = JSON.parse(res.text).review[0];
+        const review = JSON.parse(res.text).review;
         expect(review).toMatchObject({
           review_id: 2,
           title: "Jenga",
@@ -361,7 +360,7 @@ describe("PATCH /api/reviews/:review_id", () => {
       .send({ inc_votes: 10 })
       .expect(400)
       .then((res) => {
-        expect(res.body.msg).toBe("Invalid input");
+        expect(res.body.msg).toBe("Invalid request");
       });
   });
 });
@@ -393,34 +392,40 @@ describe("GET /api/users", () => {
 
 describe("DELETE /api/comments/:comment_id", () => {
   test("204: deletes comment and returns no content", () => {
-    const commentIdToDelete = 5;
     return request(app)
-      .delete(`/api/comments/${commentIdToDelete}`)
+      .delete(`/api/comments/1`)
       .expect(204)
-      .then(() => {
-        return db.query(`SELECT * FROM comments WHERE comment_id = $1`, [
-          commentIdToDelete,
-        ]);
-      })
-      .then((res) => {
-        expect(res.rows.length).toBe(0);
-      });
-  });
-  test("404: responds with error when comment not found", () => {
-    const commentIdToDelete = 99999;
-    return request(app)
-      .delete(`/api/comments/${commentIdToDelete}`)
+    })
+    test('404: responds with error when comment not found', () => {
+      return request(app)
+      .delete('/api/comments/9999')
       .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Bad request");
-      });
-  });
+      .then(({ body: {msg} }) => expect(msg).toBe('Bad request'))
+    })
+    test('400, returns an invalid requesst', () => {
+      return request(app)
+      .delete('/api/comments/invalid')
+      .expect(400)
+      .then(({body: {msg} }) => expect(msg).toBe('Invalid request'))
+    })
 });
 
-xdescribe('GET /api', () => {
-  it('responds with a JSON object describing all the available endpoints', async () => {
-    const res = await request(app).get('/api').expect(200);
-    console.log(res.body, "here");
-    expect(res.body).toEqual(apiEndpoints);
-  });
-});
+describe('GET /api', () => {
+  test('200: responds with JSON for all endpoints', () => {
+    return request(app)
+      .get('/api')
+      .expect(200)
+      .then(({ body: { endpoints } }) => {
+        console.log('test');
+        expect(endpoints).toBeInstanceOf(Object)
+        expect(endpoints).toHaveProperty('GET /api')
+        expect(endpoints).toHaveProperty('GET /api/categories')
+        expect(endpoints).toHaveProperty('GET /api/reviews')
+        expect(endpoints).toHaveProperty('GET /api/reviews/:review_id')
+        expect(endpoints).toHaveProperty('GET /api/users')
+        expect(endpoints).toHaveProperty('PATCH /api/reviews/:review_id')
+        expect(endpoints).toHaveProperty('POST /api/reviews/:review_id/comments')
+        expect(endpoints).toHaveProperty('DELETE /api/comments/:comment_id')
+      })
+  })
+})

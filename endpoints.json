@@ -1,34 +1,198 @@
 {
-  "GET /api": {
-    "description": "serves up a json representation of all the available endpoints of the api"
-  },
-  "GET /api/categories": {
-    "description": "serves an array of all categories",
-    "queries": [],
-    "exampleResponse": {
-      "categories": [
-        {
-          "description": "Players attempt to uncover each other's hidden role",
-          "slug": "Social deduction"
+    "GET /api": {
+        "description": "serves a json of all endpoints of the api"
+    },
+    
+    "GET /api/categories": {
+        "description": "serves an array of all categories",
+        "queries": [],
+        "exampleResponse": {
+            "categories": [
+                {
+                    "slug": "strategy",
+                    "description": "Strategy-focused board games that prioritise limited-randomness"
+                    }
+            ]
         }
-      ]
-    }
-  },
-  "GET /api/reviews": {
-    "description": "serves an array of all reviews",
-    "queries": ["category", "sort_by", "order"],
-    "exampleResponse": {
-      "reviews": [
-        {
-          "title": "One Night Ultimate Werewolf",
-          "designer": "Akihisa Okui",
-          "owner": "happyamy2016",
-          "review_img_url": "https://images.pexels.com/photos/5350049/pexels-photo-5350049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
-          "category": "hidden-roles",
-          "created_at": 1610964101251,
-          "votes": 5
+    },
+
+    "GET /api/reviews": {
+        "description": "serves an array of all reviews",
+        "queries": ["category", "sort_by", "order"],
+        "exampleResponse": {
+            "reviews": [
+                {
+                    "owner": "cooljmessy",
+                    "title": "Velit tempor ullamco amet ipsum dolor voluptate.",
+                    "review_id": 14,
+                    "category": "hidden-roles",
+                    "review_img_url": "https://images.pexels.com/photos/8111357/pexels-photo-8111357.jpeg?w=700&h=700",
+                    "created_at": "2021-02-05T11:27:26.563Z",
+                    "votes": 13,
+                    "designer": "Don Keigh",
+                    "comment_count": "0"
+                    }
+                ]
+            }
+        },
+
+    "GET /api/reviews/:review_id": {
+        "description": "serves specified review",
+        "queries": [],
+        "exampleResponse": {
+                "review": {
+                "review_id": 1,
+                "title": "Culture a Love of Agriculture With Agricola",
+                "category": "strategy",
+                "designer": "Uwe Rosenberg",
+                "owner": "tickle122",
+                "review_body": "You could sum up Agricola with the simple phrase 'Farmyard Fun' but the mechanics and game play add so much more than that. You'll find yourself torn between breeding pigs, or sowing crops. Its joyeous and rewarding and it makes you think of time spent outside, which is much harder to do these days!",
+                "review_img_url": "https://images.pexels.com/photos/974314/pexels-photo-974314.jpeg?w=700&h=700",
+                "created_at": "2021-01-18T10:00:20.514Z",
+                "votes": 1,
+                "comment_count": 3
+                }
+            }
+        },
+
+    "GET /api/reviews/:review_id/comments": {
+        "description": "serves an array of comments on a review",
+        "exampleResponse": [
+            {
+                "comments": [
+                    {
+                        "comment_id": 19,
+                        "body": "Quis duis mollit ad enim deserunt.",
+                        "review_id": 3,
+                        "author": "jessjelly",
+                        "votes": 3,
+                        "created_at": "2021-03-27T19:48:58.110Z"
+                        }
+                    ]
+                }
+            ]
+        },
+
+    "GET /api/users": {
+        "description": "serves an array of all users",
+        "queries": [],
+        "exampleResponse": {
+            "users": [
+                {
+                    "username": "tickle122",
+                    "name": "Tom Tickle",
+                    "avatar_url": "https://vignette.wikia.nocookie.net/mrmen/images/d/d6/Mr-Tickle-9a.png/revision/latest?cb=20180127221953"
+                }
+            ]
         }
-      ]
+    },
+
+    "GET /api/users/:username": {
+        "description": "serves specified user",
+        "queries": [],
+        "exampleResponse": {
+            "username": "grumpy19",
+            "name": "Paul Grump",
+            "avatar_url": "https://vignette.wikia.nocookie.net/mrmen/images/7/78/Mr-Grumpy-3A.PNG/revision/latest?cb=20170707233013"
+            }
+        },
+
+    "POST /api/reviews/:review_id/comments": {
+        "description": "inserts new comment into table using a request body as below (extra keys are ignored). Serves the new comment object with votes starting at 0",
+        "exampleRequestBody": {
+            "username": "String",
+            "body": "String",
+            "Extra key": "ignored"
+            },
+        "exampleResponse": {
+            "comment": {
+                "comment_id": 2,
+                "body": "I loved this game!",
+                "votes": 0,
+                "author": "grumpy19",
+                "review_id": 1,
+                "created_at": "2021-03-27T14:15:51.110Z"
+                }
+            }
+        },
+
+    "POST /api/reviews": {
+        "description": "inserts new review. Serves up review with properties initiated at 0",
+        "exampleRequestBody": {
+            "owner": "String",
+            "title": "String",
+            "review_body": "String",
+            "designer": "String",
+            "category": "String'",
+            "review_img_url": "Optional String"
+        },
+        "exampleResponse": {
+            "review_id": 16,
+            "title": "Ticket To Ride",
+            "category": "deck-building",
+            "designer": "Alan R. Moon",
+            "owner": "weegembump",
+            "review_body": "Choo-chooing onto game tables and zooming its way to becoming a modern classic. Ticket To Ride is rich with trains, tickets and tactics. Players gather train cards to enable then to build routes across a North American map, joining big cities and trying not to get blocked by their opponent ",
+            "review_img_url": "https://images.pexels.com/photos/4691567/pexels-photo-4691567.jpeg?w=700&h=700",
+            "created_at": "2021-01-22T11:05:05.936Z",
+            "votes": 0,
+            "comment_count": 0
+        }
+    },
+
+    "POST /api/categories": {
+        "description": "Inserts new category. Serves new category",
+        "exampleRequestBody": {
+            "slug": "String",
+            "description": "Optional String"
+            },
+        "exampleResponse": {
+            "slug": "new category name",
+            "description": "new category description"
+        }
+    },
+
+    "PATCH /api/reviews/:review_id": {
+        "description": "Increments the votes column for a specific review. serves the updated review object",
+        "exampleRequestBody": {
+            "inc_votes": 2
+            },
+        "exampleResponse": {
+            "review": {
+                "review_id": 16,
+                "title": "Ticket To Ride",
+                "category": "deck-building",
+                "designer": "Alan R. Moon",
+                "owner": "weegembump",
+                "review_body": "Choo-chooing onto game tables and zooming its way to becoming a modern classic. Ticket To Ride is rich with trains, tickets and tactics. Players gather train cards to enable then to build routes across a North American map, joining big cities and trying not to get blocked by their opponent ",
+                "review_img_url": "https://images.pexels.com/photos/4691567/pexels-photo-4691567.jpeg?w=700&h=700",
+                "created_at": "2021-01-22T11:05:05.936Z",
+                "votes": 4,
+                "comment_count": 8
+            }
+        }
+    },
+
+    "PATCH /api/comments/:comment_id": {
+        "description": "Increments the votes for a comment. serves the updated comment object",
+        "exampleRequestBody": {
+            "inc_votes": 1
+            },
+        "exampleResponse": {
+            "comment_id": 3,
+            "body": "I didn't know dogs could play games",
+            "votes": 13,
+            "author": "philippaclaire9",
+            "review_id": 3,
+            "created_at": "date"
+        }
+    },
+
+    "DELETE /api/comments/:comment_id": {
+        "description": "removes comment from comments table"
+    },
+
+    "DELETE /api/reviews/:review_id": {
+        "description": "removes review from reviews table"
     }
-  }
 }
